@@ -1,0 +1,61 @@
+-- Asset ID for the model
+local assetId = 113352708974560 -- Replace with your model's asset ID
+
+-- Define the target CFrame for model placement
+local targetCFrame = CFrame.new(
+    -891.389404, 327.516632, -8.01274014, 
+    0.999986589, 5.11676079e-09, -0.00518363807, 
+    -5.03120123e-09, 1, 1.65187508e-08, 
+    0.00518363807, -1.64924501e-08, 0.999986589
+)
+
+-- Load the model from the asset ID
+local success, result = pcall(function()
+    return game:GetObjects("rbxassetid://" .. assetId)
+end)
+
+if success and result[1] then
+    local model = result[1] -- The loaded model
+    model.Parent = nil -- Keep it detached for now
+
+    -- Find the "Stand" part and set it as the PrimaryPart
+    local standPart = model:FindFirstChild("Stand")
+    if standPart then
+        model.PrimaryPart = standPart -- Set the PrimaryPart to "Stand"
+
+        -- Clone the model and set its CFrame
+        local clonedModel = model:Clone()
+        clonedModel:SetPrimaryPartCFrame(targetCFrame) -- Position the model at the target CFrame
+        clonedModel.Parent = workspace -- Parent the cloned model to the workspace
+
+        print("Model successfully loaded and placed at the target CFrame!")
+    else
+        warn('The model does not contain a part named "Stand" to set as the PrimaryPart.')
+    end
+else
+    warn("Failed to load or copy the model. Check the asset ID.")
+end
+
+-- Handling the character's WalkSpeed and JumpPower modification upon interaction with the Glove
+local character = game.Players.LocalPlayer.Character
+local debounce = false
+game:GetService("Players").LocalPlayer.leaderstats.Glove.Value = "Energy Absorber"
+
+game.Workspace.StandTemplate.Glove.ClickDetector.MouseClick:Connect(function()
+    if character and character:FindFirstChild("Humanoid") then
+        -- Prevent the loop from running continuously
+        if not debounce then
+            debounce = true  -- Set debounce to true to prevent multiple activations
+
+            -- Increase WalkSpeed and JumpPower if the character is ragdolled
+            if character:FindFirstChild("Ragdolled") and character.Ragdolled.Value == true then
+                character.Humanoid.WalkSpeed = character.Humanoid.WalkSpeed + 4
+                character.Humanoid.JumpPower = character.Humanoid.JumpPower + 4
+            end
+
+            -- Wait for 4 seconds before resetting the debounce
+            task.wait(4)
+            debounce = false  -- Reset debounce after the effect
+        end
+    end
+end)
